@@ -25,19 +25,19 @@ public class ServerSocketTest {
 
     @BeforeMethod
     public void setUp() {
-        //  product = new Product(50000, "sword", 5.5);
+
         RestAssured.baseURI = BASEURI;
-        productPath = "/book";//+ product.getId();
+        productPath = "/book";
 
 
     }
 
     @DataProvider(name = "invalid id")
-    public Object[][] invalidDataForFourHundredFour() throws Exception {
+    public Object[][] invalidDataForFourHundred() throws Exception {
         return new Object[][]{
                 {"/bum"},
                 {"/5&#423"},
-                {"/®"}    //!!!! using restGate i was receive 500 error
+                {"/®"}
 
         };
     }
@@ -45,38 +45,30 @@ public class ServerSocketTest {
     @DataProvider(name = "valid id")
     public Object[][] validDataForCreateProducts() throws Exception {
         return new Object[][]{
-                {999},
-                {-1},
-                {500000000}
+                {"999"},
+                {"-1"},
+                {"500000000"}
         };
     }
 
+    @Test(dependsOnMethods = {"testBookCreationWithDataFromXML"})
+    public void deleteValidBook() {
 
-
-
-
-
-
-
-
-    @Test(dependsOnMethods={"testBookCreationWithDataFromXML"})
-    public void goToProductPage() {
-//passed
         String response = given().header(new Header("Accept", "application/xml")).
                 pathParam("id", 7).
                 when().delete(productPath + "/{id}").
                 then().
-                               body(containsString("Delete")).
-                            //   body(containsString("book")).
-                           //    body(containsString("author")).
-                                      statusCode(200).
-                        extract().body().asString();
-        System.out.println(response);}
+                body(containsString("Delete")).
+
+                statusCode(200).
+                extract().body().asString();
+        System.out.println(response);
+    }
 
 
     @Test
     public void testBookCreationWithDataFromXML() {
-        //passed
+
         book = new Book(7, "erhgrh", "drhdrh", "srgrdgdr", "drgrerg");
 
         Response r = given().header(new Header("Accept", "application/xml")).
@@ -84,45 +76,47 @@ public class ServerSocketTest {
                 body(XmlBuilder.xmlBuilderForPutCreate(book)).
                 when().
                 post(productPath);
-        Assert.assertEquals(r.getStatusCode(),201);
+        Assert.assertEquals(r.getStatusCode(), 201);
     }
+
     @Test
-    public void testUpdateBookWithDataFromXML(){
-     //   book = new Book(2, "Java", "", "", "9999");
+    public void testUpdateBookWithDataFromXML() {
+
         Response r = given().header(new Header("Accept", "application/xml")).
 
-                body(XmlBuilder.xmlBuilderLangForChange("Java",3)).
+                body(XmlBuilder.xmlBuilderLangForChange("Java", 3)).
                 when().
                 put(productPath);
 
-        Assert.assertEquals(r.getStatusCode(),201);
+        Assert.assertEquals(r.getStatusCode(), 201);
     }
 
 
- @Test
-    public void testBookCreationWithJson(){
-    book = new Book(5, "Java", "01-2007", "Rowling", "2007");
-    Response resp=given().header(new Header("Accept", "application/json")).
-          //  contentType("application/json").
-            body(book).
-            when().post(productPath);//.as(Book.class);
-    Assert.assertEquals(resp.getStatusCode(),201);
-}
+    @Test
+    public void testBookCreationWithJson() {
+        book = new Book(5, "Java", "01-2007", "Rowling", "2007");
+        Response resp = given().header(new Header("Accept", "application/json")).
 
-@Test(dependsOnMethods = "testBookCreationWithJson")
-public void deleteFromBooks() {
+                body(book).
+                when().post(productPath);//.as(Book.class);
+        Assert.assertEquals(resp.getStatusCode(), 201);
+    }
+
+    @Test(dependsOnMethods = "testBookCreationWithJson")
+    public void deleteFromBooks() {
 //passed
-    String response = given().header(new Header("Accept", "application/json")).
-            pathParam("id", 5).
-            when().delete(productPath + "/{id}").
-            then().
-            body(containsString("Delete")).
+        String response = given().header(new Header("Accept", "application/json")).
+                pathParam("id", 5).
+                when().delete(productPath + "/{id}").
+                then().
+                body(containsString("Delete")).
 
-                    statusCode(200).
-                    extract().body().asString();
-    System.out.println(response);}
+                statusCode(200).
+                extract().body().asString();
+        System.out.println(response);
+    }
 
-@Test
+    @Test
     public void testBookCreationWithPost() {
         Map<String, String> testBook = new HashMap<>();
         testBook.put("id", "55");
@@ -130,21 +124,66 @@ public void deleteFromBooks() {
         testBook.put("author", "Tolkien");
         Response resp = given().header(new Header("Accept", "application/json"))
                 .body(testBook).
-                      //  contentType("application/json").
-                when().post("/book").andReturn();
 
-        Assert.assertEquals(resp.getStatusCode(),201);
+                        when().post("/book").andReturn();
+
+        Assert.assertEquals(resp.getStatusCode(), 201);
     }
 
 
-/*
+    @Test
+    public void positiveTestUsingGetForValidUriWithTwoHundred() {
+        String resp = given().header(new Header("Accept", "application/json")).
+                pathParam("id", 1).
+                when().get(productPath + "/{id}").
+                // andReturn().
+
+                        then().statusCode(200).
+                        extract().body().toString();
+
+        System.out.println(resp);
+    }
+
+    @Test
+    public void deleteBookByNonValidIdExpectingFourHundred() {
+//passed
+        String response = given().header(new Header("Accept", "application/xml")).
+                pathParam("id", 7).
+                when().delete(productPath + "/{id}").
+                then().
+                body(containsString("No such")).
+
+                statusCode(400).
+                extract().body().asString();
+        System.out.println(response);
+    }
+
 
     @Test(dataProvider = "invalid id")
-    public void negativeTestUsingGetForInvalidUriWithFourHundredFour(String path) {
-        getProductStep.getProduct(BASEURI, path).then().assertThat().statusCode(404);
-    }
-*/
+    public void negativeTestUsingGetForInvalidUriWithFourHundred(String path) {
+        String resp = given().header(new Header("Accept", "application/json")).//pathParam("id", 7).
+                when().get(productPath + path).//"/{id}").
+                // andReturn().
 
+                        then().statusCode(400).
+                        extract().body().toString();
+        // Assert.assertEquals(resp.getStatusCode(),400);
+        System.out.println(resp);
+    }
+
+    @Test(dataProvider = "valid id")
+    public void testBookCreationWithPost(String id) {
+        Map<String, String> testBook = new HashMap<>();
+        testBook.put("id", id);
+        testBook.put("language", "Eng");
+        testBook.put("author", "Tolkien");
+        Response resp = given().
+                header(new Header("Accept", "application/json")).
+                body(testBook).
+                when().post("/book").andReturn();
+
+        Assert.assertEquals(resp.getStatusCode(), 201);
+    }
 
 
 /*
